@@ -1,0 +1,19 @@
+# Betriebssystem
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Node / Build
+node_modules/
+dist/
+build/
+
+# Temporäre Dateien
+*.log
+*.tmp
+*.bak

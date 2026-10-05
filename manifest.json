@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Mein Übersetzer",
+  "version": "1.8",
+  "description": "Markierten Text automatisch erkennen und ins Deutsche übersetzen. Kopiert automatisch: Text = deutsche Übersetzung.",
+  "permissions": ["storage", "clipboardWrite"],
+  "host_permissions": ["https://translate.googleapis.com/*"],
+  "background": {"service_worker": "background.js"},
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["panel.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
