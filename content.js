@@ -1,136 +1,16 @@
 (() => {
   const POSITION_KEY = 'mein-uebersetzer-position';
-  let panel = null;
-  let hideTimer = null;
-  let requestId = 0;
-  let drag = null;
-  let lastSelectedText = '';
-
-  function getSelectedText() { return window.getSelection()?.toString().trim() || ''; }
-
-  function hidePanel() {
-    if (panel) panel.style.display = 'none';
-    clearTimeout(hideTimer);
-    hideTimer = null;
-  }
-
-  function clampPanel() {
-    if (!panel) return;
-    const margin = 12;
-    const maxWidth = Math.max(180, innerWidth - margin * 2);
-    panel.style.maxWidth = `${maxWidth}px`;
-    panel.style.maxHeight = `${Math.max(100, innerHeight - margin * 2)}px`;
-    const rect = panel.getBoundingClientRect();
-    let left = rect.left;
-    let top = rect.top;
-    if (rect.right > innerWidth - margin) left -= rect.right - (innerWidth - margin);
-    if (rect.left < margin) left += margin - rect.left;
-    if (rect.bottom > innerHeight - margin) top -= rect.bottom - (innerHeight - margin);
-    if (rect.top < margin) top += margin - rect.top;
-    panel.style.left = `${Math.max(margin, left)}px`;
-    panel.style.top = `${Math.max(margin, top)}px`;
-    panel.style.right = 'auto';
-    panel.style.bottom = 'auto';
-  }
-
-  function applySavedPosition() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(POSITION_KEY) || 'null');
-      if (!saved || !panel) return;
-      panel.style.left = `${saved.left}px`;
-      panel.style.top = `${saved.top}px`;
-      panel.style.right = 'auto';
-      panel.style.bottom = 'auto';
-      clampPanel();
-    } catch {}
-  }
-
-  function startDrag(event) {
-    if (!panel || event.button !== 0) return;
-    const rect = panel.getBoundingClientRect();
-    drag = { pointerId: event.pointerId, offsetX: event.clientX - rect.left, offsetY: event.clientY - rect.top };
-    event.currentTarget.setPointerCapture(event.pointerId);
-    panel.classList.add('dragging');
-    event.preventDefault();
-  }
-
-  function moveDrag(event) {
-    if (!drag || event.pointerId !== drag.pointerId) return;
-    panel.style.left = `${event.clientX - drag.offsetX}px`;
-    panel.style.top = `${event.clientY - drag.offsetY}px`;
-    panel.style.right = 'auto';
-    panel.style.bottom = 'auto';
-    clampPanel();
-  }
-
-  function endDrag(event) {
-    if (!drag || event.pointerId !== drag.pointerId) return;
-    try { event.currentTarget.releasePointerCapture(event.pointerId); } catch {}
-    const rect = panel.getBoundingClientRect();
-    localStorage.setItem(POSITION_KEY, JSON.stringify({ left: rect.left, top: rect.top }));
-    panel.classList.remove('dragging');
-    drag = null;
-  }
-
-  function ensurePanel() {
-    if (panel) return;
-    panel = document.createElement('div');
-    panel.id = 'mein-uebersetzer-panel';
-    panel.innerHTML = '<div class="mein-uebersetzer-handle" title="Ziehen zum Verschieben">⠿ Übersetzung</div><div class="mein-uebersetzer-text"></div>';
-    document.documentElement.appendChild(panel);
-    const handle = panel.querySelector('.mein-uebersetzer-handle');
-    handle.addEventListener('pointerdown', startDrag);
-    handle.addEventListener('pointermove', moveDrag);
-    handle.addEventListener('pointerup', endDrag);
-    handle.addEventListener('pointercancel', endDrag);
-    applySavedPosition();
-  }
-
-  function showPanel(text) {
-    ensurePanel();
-    panel.querySelector('.mein-uebersetzer-text').textContent = text;
-    panel.style.display = 'block';
-    clampPanel();
-  }
-
-  function requestTranslation(text) {
-    const currentRequest = ++requestId;
-    chrome.runtime.sendMessage({ type: 'translate', text }, response => {
-      if (currentRequest !== requestId) return;
-      if (chrome.runtime.lastError || !response || response.skip || response.error) {
-        hidePanel();
-        return;
-      }
-      if (getSelectedText() !== text) {
-        hidePanel();
-        return;
-      }
-      if (response.translation) showPanel(response.translation);
-    });
-  }
-
-  document.addEventListener('selectionchange', () => {
-    const selected = getSelectedText();
-    if (!selected) {
-      requestId++;
-      lastSelectedText = '';
-      hidePanel();
-      return;
-    }
-    if (selected !== lastSelectedText) {
-      lastSelectedText = selected;
-      requestTranslation(selected);
-    }
-  });
-
-  document.addEventListener('mouseup', () => {
-    const selected = getSelectedText();
-    if (selected && selected !== lastSelectedText) {
-      lastSelectedText = selected;
-      requestTranslation(selected);
-    }
-  });
-
-  document.addEventListener('keydown', event => { if (event.key === 'Escape') hidePanel(); });
-  window.addEventListener('resize', clampPanel);
+  let panel = null, drag = null, requestId = 0, lastSelectedText = '';
+  function selectedText(){return window.getSelection()?.toString().trim()||'';}
+  function hidePanel(){if(panel)panel.style.display='none';}
+  function fitPanel(){if(!panel)return;const margin=12, maxW=Math.max(180,innerWidth-margin*2), maxH=Math.max(100,innerHeight-margin*2);panel.style.width='max-content';panel.style.maxWidth=`${maxW}px`;panel.style.maxHeight=`${maxH}px`;const text=panel.querySelector('.mein-uebersetzer-text');text.style.maxHeight='none';const rect=panel.getBoundingClientRect();if(rect.height>maxH)text.style.maxHeight=`${Math.max(60,maxH-panel.querySelector('.mein-uebersetzer-handle').offsetHeight-24)}px`;const r=panel.getBoundingClientRect();let l=r.left,t=r.top;if(r.right>innerWidth-margin)l-=r.right-(innerWidth-margin);if(r.left<margin)l+=margin-r.left;if(r.bottom>innerHeight-margin)t-=r.bottom-(innerHeight-margin);if(r.top<margin)t+=margin-r.top;panel.style.left=`${Math.max(margin,l)}px`;panel.style.top=`${Math.max(margin,t)}px`;panel.style.right='auto';panel.style.bottom='auto';}
+  function startDrag(e){if(!panel||e.button!==0)return;const r=panel.getBoundingClientRect();drag={id:e.pointerId,x:e.clientX-r.left,y:e.clientY-r.top};e.currentTarget.setPointerCapture(e.pointerId);e.preventDefault();}
+  function moveDrag(e){if(!drag||e.pointerId!==drag.id)return;panel.style.left=`${e.clientX-drag.x}px`;panel.style.top=`${e.clientY-drag.y}px`;fitPanel();}
+  function endDrag(e){if(!drag||e.pointerId!==drag.id)return;try{e.currentTarget.releasePointerCapture(e.pointerId)}catch{}const r=panel.getBoundingClientRect();localStorage.setItem(POSITION_KEY,JSON.stringify({left:r.left,top:r.top}));drag=null;}
+  function ensurePanel(){if(panel)return;panel=document.createElement('div');panel.id='mein-uebersetzer-panel';panel.innerHTML='<div class="mein-uebersetzer-handle">⠿ Übersetzung</div><div class="mein-uebersetzer-text"></div>';document.documentElement.appendChild(panel);const h=panel.firstElementChild;h.addEventListener('pointerdown',startDrag);h.addEventListener('pointermove',moveDrag);h.addEventListener('pointerup',endDrag);h.addEventListener('pointercancel',endDrag);try{const p=JSON.parse(localStorage.getItem(POSITION_KEY)||'null');if(p){panel.style.left=p.left+'px';panel.style.top=p.top+'px';panel.style.right='auto';panel.style.bottom='auto';}}catch{} }
+  function showPanel(text){ensurePanel();panel.querySelector('.mein-uebersetzer-text').textContent=text;panel.style.display='block';fitPanel();}
+  function requestTranslation(text){const id=++requestId;chrome.runtime.sendMessage({type:'translate',text},r=>{if(id!==requestId)return;if(chrome.runtime.lastError||!r||r.skip||r.error){hidePanel();return;}if(selectedText()!==text){hidePanel();return;}if(r.translation)showPanel(r.translation);});}
+  document.addEventListener('selectionchange',()=>{const s=selectedText();if(!s){requestId++;lastSelectedText='';hidePanel();return;}if(s!==lastSelectedText){lastSelectedText=s;requestTranslation(s);}});
+  document.addEventListener('mouseup',()=>{const s=selectedText();if(s&&s!==lastSelectedText){lastSelectedText=s;requestTranslation(s);}});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')hidePanel();});window.addEventListener('resize',fitPanel);
 })();
