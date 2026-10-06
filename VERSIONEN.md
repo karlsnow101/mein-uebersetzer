@@ -1,13 +1,9 @@
 # Versionen
 
-## v2.1.0
-- Deutsche Texte werden nicht übersetzt.
-- Das Panel schließt immer nach 5 Sekunden.
-- `Esc` schließt das Panel sofort.
-- Keine automatische Zwischenablage-Funktion.
-
-## v2.0.0
-- Automatisches Kopieren entfernt.
-
-## v1.9.0
-- Panel blieb sichtbar, solange Text markiert war.
+## v2.3.0
+- Panel nur sichtbar, solange Text markiert ist.
+- Deutsche Texte werden ignoriert.
+- Andere Sprachen werden nach Deutsch übersetzt.
+- Aufheben der Markierung blendet das Panel sofort aus.
+- Lange Übersetzungen werden innerhalb des Bildschirms angezeigt und bei Bedarf scrollbar.
+- Panel bleibt verschiebbar.
