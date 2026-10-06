@@ -1,19 +1,13 @@
-# Versionsverlauf
+# Versionen
 
-## v1.8 – aktuell
+## v2.1.0
+- Deutsche Texte werden nicht übersetzt.
+- Das Panel schließt immer nach 5 Sekunden.
+- `Esc` schließt das Panel sofort.
+- Keine automatische Zwischenablage-Funktion.
 
-- Automatische Spracherkennung
-- Übersetzung immer nach Deutsch
-- Automatisches Kopieren als `Text = deutsche Übersetzung`
-- Dunkles, schlankes, verschiebbares Panel
-- Position wird gespeichert
-- Automatisches Ausblenden nach 10 Sekunden
-- `Esc` schließt das Panel
+## v2.0.0
+- Automatisches Kopieren entfernt.
 
-## Geplante Ideen
-
-- `Alt + U`: Panel ein-/ausblenden
-- `Alt + C`: letzte Übersetzung erneut kopieren
-- Interne Vokabelliste mit „+“-Button
-- CSV-Export der Vokabeln
-- Chrome Translator API als lokale, privatere Übersetzung
+## v1.9.0
+- Panel blieb sichtbar, solange Text markiert war.

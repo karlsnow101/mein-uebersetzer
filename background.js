@@ -1,34 +1,34 @@
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type !== "translate") return;
+const TRANSLATE_ENDPOINT = 'https://translate.googleapis.com/translate_a/single';
 
-  translateToGerman(message.text)
-    .then(translation => sendResponse({ ok: true, translation }))
-    .catch(() => sendResponse({ ok: false }));
+function detectLanguage(text) {
+  const url = `${TRANSLATE_ENDPOINT}?client=gtx&sl=auto&tl=de&dt=t&q=${encodeURIComponent(text)}`;
+  return fetch(url).then(response => {
+    if (!response.ok) throw new Error('language detection failed');
+    return response.json();
+  });
+}
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type !== 'translate' || typeof message.text !== 'string') return;
+
+  (async () => {
+    try {
+      const data = await detectLanguage(message.text);
+      const detectedLanguage = data?.[2];
+      if (detectedLanguage === 'de') {
+        sendResponse({ skip: true });
+        return;
+      }
+
+      const translation = Array.isArray(data?.[0])
+        ? data[0].map(item => item?.[0] || '').join('')
+        : '';
+      if (!translation) throw new Error('empty translation');
+      sendResponse({ translation });
+    } catch {
+      sendResponse({ error: true });
+    }
+  })();
 
   return true;
 });
-
-async function translateToGerman(text) {
-  // sl=auto: Google erkennt die Quellsprache automatisch.
-  // Britisches und amerikanisches Englisch werden beide als "en" erkannt.
-  const url =
-    "https://translate.googleapis.com/translate_a/single" +
-    "?client=gtx&sl=auto&tl=de&dt=t&q=" +
-    encodeURIComponent(text);
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error("Translation request failed");
-  }
-
-  const data = await response.json();
-
-  if (!Array.isArray(data) || !Array.isArray(data[0])) {
-    throw new Error("Unexpected translation response");
-  }
-
-  return data[0]
-    .map(part => Array.isArray(part) && typeof part[0] === "string" ? part[0] : "")
-    .join("");
-}
